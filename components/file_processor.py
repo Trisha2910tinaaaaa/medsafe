@@ -14,7 +14,7 @@ class FileProcessor:
         if uploaded_file is None:
             return "", "No file uploaded"
         
-        file_type = uploaded_file.type
+        file_type = uploaded_file.content_type
         file_name = uploaded_file.name
         
         try:
@@ -86,8 +86,8 @@ class FileProcessor:
             "image/bmp"
         ]
         
-        if uploaded_file.type not in allowed_types:
-            return False, f"Unsupported file type: {uploaded_file.type}. Supported types: PDF, JPEG, PNG, TIFF, BMP"
+        if uploaded_file.content_type not in allowed_types:
+            return False, f"Unsupported file type: {uploaded_file.content_type}. Supported types: PDF, JPEG, PNG, TIFF, BMP"
         
         return True, "File is valid"
     
@@ -97,9 +97,9 @@ class FileProcessor:
             return None
         
         try:
-            if uploaded_file.type == "application/pdf":
+            if uploaded_file.content_type == "application/pdf":
                 return self._get_pdf_preview(uploaded_file)
-            elif uploaded_file.type.startswith("image/"):
+            elif uploaded_file.content_type.startswith("image/"):
                 return self._get_image_preview(uploaded_file)
             else:
                 return None
@@ -166,7 +166,7 @@ class FileProcessor:
         
         return {
             'name': uploaded_file.name,
-            'type': uploaded_file.type,
+            'type': uploaded_file.content_type,
             'size': uploaded_file.size,
             'size_mb': round(uploaded_file.size / (1024 * 1024), 2)
         }
