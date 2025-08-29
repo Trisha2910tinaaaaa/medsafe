@@ -20,7 +20,7 @@ st.markdown("""
         background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
         padding: 2rem;
         border-radius: 10px;
-        color: black;
+        color: white;
         text-align: center;
         margin-bottom: 2rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -33,6 +33,16 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin: 1rem 0;
         border-left: 4px solid #1e3c72;
+    }
+    
+    .dosage-card {
+        background: #ffffff;
+        color: #2d3748;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
     .interaction-card {
@@ -115,7 +125,7 @@ st.markdown("""
     
     .stButton > button {
         background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
-        color: black;
+        color: white;
         border: none;
         padding: 0.5rem 2rem;
         border-radius: 25px;
@@ -130,7 +140,7 @@ st.markdown("""
     
     .sidebar .sidebar-content {
         background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
-        color: black;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -348,7 +358,7 @@ def main():
                         
                         for item in result.get('results', []):
                             st.markdown(f"""
-                            <div class="metric-card">
+                            <div class="dosage-card">
                                 <h3>{item['drug'].title()}</h3>
                                 <p><strong>Recommended Dosage:</strong> {item.get('recommended_dosage', 'Consult healthcare provider')}</p>
                                 <p><strong>Age Group:</strong> {item.get('age_group', 'Unknown')}</p>
@@ -499,7 +509,7 @@ def main():
                                         st.markdown("### 💊 Dosage Recommendations")
                                         for item in result['dosage_results']:
                                             st.markdown(f"""
-                                            <div class="metric-card">
+                                            <div class="dosage-card">
                                                 <h3>{item['drug'].title()}</h3>
                                                 <p><strong>Recommended Dosage:</strong> {item.get('recommended_dosage', 'Consult healthcare provider')}</p>
                                                 <p><strong>Age Group:</strong> {item.get('age_group', 'Unknown')}</p>
@@ -662,7 +672,7 @@ def main():
                                 st.markdown("### 💊 Dosage Recommendations")
                                 for dosage in result['dosage_results']:
                                     st.markdown(f"""
-                                    <div class="feature-card">
+                                    <div class="dosage-card">
                                         <h4>{dosage['drug'].title()}</h4>
                                         <p><strong>Dosage:</strong> {dosage.get('recommended_dosage', 'Consult provider')}</p>
                                         <p><strong>Alternatives:</strong> {', '.join(dosage.get('alternatives', []))}</p>
