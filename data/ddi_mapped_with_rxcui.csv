@@ -1,0 +1,21 @@
+drug1,drug2,interaction_description,severity
+aspirin,ibuprofen,"May increase risk of gastrointestinal bleeding",high
+aspirin,warfarin,"Increased risk of bleeding",high
+aspirin,clopidogrel,"Increased risk of bleeding",high
+ibuprofen,warfarin,"Increased risk of bleeding",high
+ibuprofen,aspirin,"May increase risk of gastrointestinal bleeding",high
+acetaminophen,alcohol,"May cause liver damage",medium
+acetaminophen,warfarin,"May increase bleeding risk",medium
+amoxicillin,allopurinol,"May increase risk of skin rash",low
+amoxicillin,probenecid,"May increase amoxicillin levels",low
+metformin,alcohol,"May increase risk of lactic acidosis",medium
+metformin,insulin,"May increase risk of hypoglycemia",medium
+lisinopril,ibuprofen,"May reduce blood pressure lowering effect",medium
+lisinopril,aspirin,"May increase risk of kidney problems",medium
+simvastatin,grapefruit,"May increase simvastatin levels",high
+simvastatin,amiodarone,"May increase risk of muscle damage",high
+omeprazole,clopidogrel,"May reduce clopidogrel effectiveness",medium
+omeprazole,iron,"May reduce iron absorption",low
+prednisone,ibuprofen,"May increase risk of stomach ulcers",medium
+prednisone,warfarin,"May increase bleeding risk",medium
+albuterol,propranolol,"May reduce albuterol effectiveness",medium
