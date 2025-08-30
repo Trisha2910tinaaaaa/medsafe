@@ -14,8 +14,28 @@ class FileProcessor:
         if uploaded_file is None:
             return "", "No file uploaded"
         
-        file_type = uploaded_file.content_type
-        file_name = uploaded_file.name
+        # Handle both Streamlit UploadedFile and FastAPI UploadFile objects
+        if hasattr(uploaded_file, 'type'):
+            file_type = uploaded_file.type
+        elif hasattr(uploaded_file, 'content_type'):
+            file_type = uploaded_file.content_type
+        else:
+            # Fallback: determine type from filename
+            file_name = getattr(uploaded_file, 'name', getattr(uploaded_file, 'filename', 'unknown'))
+            if file_name.lower().endswith('.pdf'):
+                file_type = "application/pdf"
+            elif file_name.lower().endswith(('.jpg', '.jpeg')):
+                file_type = "image/jpeg"
+            elif file_name.lower().endswith('.png'):
+                file_type = "image/png"
+            elif file_name.lower().endswith('.tiff'):
+                file_type = "image/tiff"
+            elif file_name.lower().endswith('.bmp'):
+                file_type = "image/bmp"
+            else:
+                return "", "Unable to determine file type"
+        
+        file_name = getattr(uploaded_file, 'name', getattr(uploaded_file, 'filename', 'unknown'))
         
         try:
             if file_type == "application/pdf":
@@ -31,8 +51,17 @@ class FileProcessor:
     def _extract_text_from_pdf(self, uploaded_file) -> str:
         """Extract text from PDF file"""
         try:
-            # Read PDF content
-            pdf_content = uploaded_file.read()
+            # Handle different file object types
+            if hasattr(uploaded_file, 'read'):
+                # For FastAPI UploadFile, read the content
+                if hasattr(uploaded_file, 'seek'):
+                    uploaded_file.seek(0)
+                pdf_content = uploaded_file.read()
+            elif hasattr(uploaded_file, 'getvalue'):
+                # For Streamlit UploadedFile
+                pdf_content = uploaded_file.getvalue()
+            else:
+                raise Exception("Unsupported file object type")
             
             # Open PDF with PyMuPDF
             pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
@@ -46,6 +75,11 @@ class FileProcessor:
                 extracted_text += text + "\n"
             
             pdf_document.close()
+            
+            # Check if any text was extracted
+            if not extracted_text.strip():
+                return "No text could be extracted from the PDF. The PDF might be image-based or encrypted."
+            
             return extracted_text.strip()
             
         except Exception as e:
@@ -54,27 +88,85 @@ class FileProcessor:
     def _extract_text_from_image(self, uploaded_file) -> str:
         """Extract text from image using OCR"""
         try:
-            # Read image content
-            image_content = uploaded_file.read()
+            # Import pytesseract for OCR
+            try:
+                import pytesseract
+            except ImportError:
+                return "OCR library not installed. Please install pytesseract: pip install pytesseract"
+            
+            # Handle different file object types
+            if hasattr(uploaded_file, 'read'):
+                # For FastAPI UploadFile, read the content
+                if hasattr(uploaded_file, 'seek'):
+                    uploaded_file.seek(0)
+                image_content = uploaded_file.read()
+            elif hasattr(uploaded_file, 'getvalue'):
+                # For Streamlit UploadedFile
+                image_content = uploaded_file.getvalue()
+            else:
+                raise Exception("Unsupported file object type")
             
             # Open image with PIL
             image = Image.open(io.BytesIO(image_content))
             
-            # For now, return a placeholder since OCR requires additional setup
-            return "Image text extraction requires OCR setup. Please enter text manually."
+            # Convert to RGB if necessary
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Extract text using OCR
+            extracted_text = pytesseract.image_to_string(image, lang='eng')
+            
+            if not extracted_text.strip():
+                return "No text could be extracted from the image. Please ensure the image contains readable text."
+            
+            return extracted_text.strip()
             
         except Exception as e:
-            raise Exception(f"Error extracting text from image: {str(e)}")
+            # Fallback: return a more informative error message
+            return f"Error extracting text from image: {str(e)}. Please ensure pytesseract is installed and configured properly."
     
     def validate_file(self, uploaded_file) -> Tuple[bool, str]:
         """Validate uploaded file"""
         if uploaded_file is None:
             return False, "No file uploaded"
         
+        # Get file size
+        if hasattr(uploaded_file, 'size'):
+            file_size = uploaded_file.size
+        elif hasattr(uploaded_file, 'file') and hasattr(uploaded_file.file, 'seek'):
+            # For FastAPI UploadFile, get size by seeking
+            current_pos = uploaded_file.file.tell()
+            uploaded_file.file.seek(0, 2)  # Seek to end
+            file_size = uploaded_file.file.tell()
+            uploaded_file.file.seek(current_pos)  # Reset position
+        else:
+            file_size = 0
+        
         # Check file size (max 10MB)
         max_size = 10 * 1024 * 1024  # 10MB
-        if uploaded_file.size > max_size:
+        if file_size > max_size:
             return False, "File size too large. Maximum size is 10MB."
+        
+        # Get file type
+        if hasattr(uploaded_file, 'type'):
+            file_type = uploaded_file.type
+        elif hasattr(uploaded_file, 'content_type'):
+            file_type = uploaded_file.content_type
+        else:
+            # Fallback: determine type from filename
+            file_name = getattr(uploaded_file, 'name', getattr(uploaded_file, 'filename', 'unknown'))
+            if file_name.lower().endswith('.pdf'):
+                file_type = "application/pdf"
+            elif file_name.lower().endswith(('.jpg', '.jpeg')):
+                file_type = "image/jpeg"
+            elif file_name.lower().endswith('.png'):
+                file_type = "image/png"
+            elif file_name.lower().endswith('.tiff'):
+                file_type = "image/tiff"
+            elif file_name.lower().endswith('.bmp'):
+                file_type = "image/bmp"
+            else:
+                return False, "Unable to determine file type"
         
         # Check file type
         allowed_types = [
@@ -86,8 +178,8 @@ class FileProcessor:
             "image/bmp"
         ]
         
-        if uploaded_file.content_type not in allowed_types:
-            return False, f"Unsupported file type: {uploaded_file.content_type}. Supported types: PDF, JPEG, PNG, TIFF, BMP"
+        if file_type not in allowed_types:
+            return False, f"Unsupported file type: {file_type}. Supported types: PDF, JPEG, PNG, TIFF, BMP"
         
         return True, "File is valid"
     
@@ -97,9 +189,9 @@ class FileProcessor:
             return None
         
         try:
-            if uploaded_file.content_type == "application/pdf":
+            if uploaded_file.type == "application/pdf":
                 return self._get_pdf_preview(uploaded_file)
-            elif uploaded_file.content_type.startswith("image/"):
+            elif uploaded_file.type.startswith("image/"):
                 return self._get_image_preview(uploaded_file)
             else:
                 return None
@@ -164,9 +256,31 @@ class FileProcessor:
         if uploaded_file is None:
             return {}
         
+        # Get file name
+        file_name = getattr(uploaded_file, 'name', getattr(uploaded_file, 'filename', 'unknown'))
+        
+        # Get file type
+        if hasattr(uploaded_file, 'type'):
+            file_type = uploaded_file.type
+        elif hasattr(uploaded_file, 'content_type'):
+            file_type = uploaded_file.content_type
+        else:
+            file_type = "unknown"
+        
+        # Get file size
+        if hasattr(uploaded_file, 'size'):
+            file_size = uploaded_file.size
+        elif hasattr(uploaded_file, 'file') and hasattr(uploaded_file.file, 'seek'):
+            current_pos = uploaded_file.file.tell()
+            uploaded_file.file.seek(0, 2)
+            file_size = uploaded_file.file.tell()
+            uploaded_file.file.seek(current_pos)
+        else:
+            file_size = 0
+        
         return {
-            'name': uploaded_file.name,
-            'type': uploaded_file.content_type,
-            'size': uploaded_file.size,
-            'size_mb': round(uploaded_file.size / (1024 * 1024), 2)
+            'name': file_name,
+            'type': file_type,
+            'size': file_size,
+            'size_mb': round(file_size / (1024 * 1024), 2) if file_size > 0 else 0
         }

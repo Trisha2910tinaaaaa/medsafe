@@ -13,14 +13,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for beautiful UI
+# Simple, clean CSS
 st.markdown("""
 <style>
     .main-header {
         background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
         padding: 2rem;
         border-radius: 10px;
-        color: black;
+        color: white;
         text-align: center;
         margin-bottom: 2rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -28,11 +28,55 @@ st.markdown("""
     
     .feature-card {
         background: white;
+        color: #2d3748 !important;
         padding: 1.5rem;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin: 1rem 0;
         border-left: 4px solid #1e3c72;
+    }
+    
+    .feature-card h4 {
+        color: #1e3c72 !important;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card p {
+        color: #2d3748 !important;
+        margin: 0.5rem 0;
+    }
+    
+    .feature-card strong {
+        color: #1a202c !important;
+        font-weight: 600;
+    }
+    
+    .dosage-card {
+        background: #ffffff;
+        color: #2d3748 !important;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dosage-card h3 {
+        color: #1e3c72 !important;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+    
+    .dosage-card p {
+        color: #2d3748 !important;
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+    
+    .dosage-card strong {
+        color: #1a202c !important;
+        font-weight: 600;
     }
     
     .interaction-card {
@@ -42,34 +86,60 @@ st.markdown("""
         margin: 1rem 0;
         border: 2px solid #e53e3e;
         box-shadow: 0 4px 12px rgba(229, 62, 62, 0.1);
-        color: #2d3748;
+        color: #2d3748 !important;
     }
     
     .interaction-card h4 {
-        color: #e53e3e;
+        color: #e53e3e !important;
         margin-bottom: 1rem;
         font-weight: bold;
     }
     
     .interaction-card p {
+        color: #2d3748 !important;
         margin: 0.5rem 0;
         line-height: 1.6;
     }
     
+    .interaction-card strong {
+        color: #1a202c !important;
+        font-weight: 600;
+    }
+    
     .success-card {
         background: #f0fff4;
+        color: #2d3748 !important;
         padding: 1rem;
         border-radius: 8px;
         margin: 0.5rem 0;
         border-left: 4px solid #38a169;
     }
     
+    .success-card h4 {
+        color: #38a169 !important;
+        font-weight: bold;
+    }
+    
+    .success-card p {
+        color: #2d3748 !important;
+    }
+    
     .warning-card {
         background: #fffaf0;
+        color: #2d3748 !important;
         padding: 1rem;
         border-radius: 8px;
         margin: 0.5rem 0;
         border-left: 4px solid #d69e2e;
+    }
+    
+    .warning-card h4 {
+        color: #d69e2e !important;
+        font-weight: bold;
+    }
+    
+    .warning-card p, .warning-card li {
+        color: #2d3748 !important;
     }
     
     .metric-card {
@@ -115,7 +185,7 @@ st.markdown("""
     
     .stButton > button {
         background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
-        color: black;
+        color: white;
         border: none;
         padding: 0.5rem 2rem;
         border-radius: 25px;
@@ -130,7 +200,7 @@ st.markdown("""
     
     .sidebar .sidebar-content {
         background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
-        color: black;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -169,8 +239,8 @@ def main():
     # Header
     st.markdown("""
     <div class="main-header">
-        <h1>💊 MedSafe - AI-Powered Prescription Verification</h1>
-        <p>Advanced Drug Interaction Analysis with IBM Granite & Hugging Face AI</p>
+        <h1>💊 MedSafe - AI Prescription Verification</h1>
+        <p>Advanced Drug Interaction Analysis with AI</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -200,8 +270,8 @@ def main():
         if st.button("Load Example", key="load_example"):
             st.session_state.prescription_text = selected_example
     
-    # Main content with tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["🏥 Drug Interactions", "💊 Dosage & Alternatives", "📄 File Upload", "📊 Comprehensive Analysis"])
+    # Simple tab navigation
+    tab1, tab2, tab3, tab4 = st.tabs(["🔍 Drug Interactions", "💊 Dosage & Alternatives", "📄 File Upload", "📊 Comprehensive Analysis"])
     
     # Tab 1: Drug Interactions
     with tab1:
@@ -348,7 +418,7 @@ def main():
                         
                         for item in result.get('results', []):
                             st.markdown(f"""
-                            <div class="metric-card">
+                            <div class="dosage-card">
                                 <h3>{item['drug'].title()}</h3>
                                 <p><strong>Recommended Dosage:</strong> {item.get('recommended_dosage', 'Consult healthcare provider')}</p>
                                 <p><strong>Age Group:</strong> {item.get('age_group', 'Unknown')}</p>
@@ -499,7 +569,7 @@ def main():
                                         st.markdown("### 💊 Dosage Recommendations")
                                         for item in result['dosage_results']:
                                             st.markdown(f"""
-                                            <div class="metric-card">
+                                            <div class="dosage-card">
                                                 <h3>{item['drug'].title()}</h3>
                                                 <p><strong>Recommended Dosage:</strong> {item.get('recommended_dosage', 'Consult healthcare provider')}</p>
                                                 <p><strong>Age Group:</strong> {item.get('age_group', 'Unknown')}</p>
@@ -662,7 +732,7 @@ def main():
                                 st.markdown("### 💊 Dosage Recommendations")
                                 for dosage in result['dosage_results']:
                                     st.markdown(f"""
-                                    <div class="feature-card">
+                                    <div class="dosage-card">
                                         <h4>{dosage['drug'].title()}</h4>
                                         <p><strong>Dosage:</strong> {dosage.get('recommended_dosage', 'Consult provider')}</p>
                                         <p><strong>Alternatives:</strong> {', '.join(dosage.get('alternatives', []))}</p>

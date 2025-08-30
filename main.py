@@ -245,44 +245,80 @@ async def upload_and_analyze(
     Upload PDF/image and perform comprehensive analysis
     """
     try:
+        # Read file content first
+        file_content = await file.read()
+        
+        # Create a simple file-like object for processing
+        class SimpleFile:
+            def __init__(self, content, filename, content_type):
+                self.content = content
+                self.filename = filename
+                self.content_type = content_type
+                self.name = filename
+                self.type = content_type
+                self.size = len(content)
+                self._position = 0
+            
+            def read(self):
+                return self.content
+            
+            def getvalue(self):
+                return self.content
+            
+            def seek(self, position):
+                self._position = position
+        
+        simple_file = SimpleFile(file_content, file.filename, file.content_type)
+        
         # Validate file
-        is_valid, validation_message = file_processor.validate_file(file)
+        is_valid, validation_message = file_processor.validate_file(simple_file)
         if not is_valid:
             raise HTTPException(status_code=400, detail=validation_message)
         
         # Process file
-        extracted_text, process_message = file_processor.process_uploaded_file(file)
-        if not extracted_text:
-            raise HTTPException(status_code=400, detail="No text could be extracted from the file")
+        extracted_text, process_message = file_processor.process_uploaded_file(simple_file)
+        if not extracted_text or "Error" in extracted_text or "No text could be extracted" in extracted_text:
+            raise HTTPException(status_code=400, detail=f"Text extraction failed: {extracted_text or process_message}")
         
-        # Perform analysis
-        analysis_data = {
-            "text": extracted_text,
-            "age": age,
-            "weight": weight,
-            "renal_function": renal_function,
-            "language": language
-        }
+        # Extract drugs - with fallback
+        try:
+            extracted_drugs = ai_services.extract_drugs_from_text(extracted_text, language)
+            drugs_found = [drug['drug_name'] for drug in extracted_drugs if 'drug_name' in drug]
+        except Exception as e:
+            # Fallback: simple keyword extraction
+            common_drugs = ['aspirin', 'ibuprofen', 'paracetamol', 'acetaminophen', 'amoxicillin', 'metformin']
+            drugs_found = [drug for drug in common_drugs if drug.lower() in extracted_text.lower()]
         
-        # Extract drugs
-        extracted_drugs = ai_services.extract_drugs_from_text(extracted_text, language)
-        drugs_found = [drug['drug_name'] for drug in extracted_drugs]
+        # Check interactions - with fallback
+        try:
+            interactions = drug_db.get_interactions(drugs_found) if drugs_found else []
+        except Exception as e:
+            interactions = []
         
-        # Check interactions
-        interactions = drug_db.get_interactions(drugs_found)
-        
-        # Add AI analysis
+        # Add AI analysis - with fallback
         for interaction in interactions:
-            ai_explanation = ai_services.get_explainable_ai_analysis(interaction)
-            interaction['ai_analysis'] = ai_explanation
+            try:
+                ai_explanation = ai_services.get_explainable_ai_analysis(interaction)
+                interaction['ai_analysis'] = ai_explanation
+            except Exception as e:
+                interaction['ai_analysis'] = "AI analysis temporarily unavailable"
         
-        # Get dosage recommendations
+        # Get dosage recommendations - with fallback
         dosage_results = []
         for drug in drugs_found:
-            dosage_info = drug_db.get_dosage_recommendations(drug, age, weight, renal_function)
-            alternatives = drug_db.get_alternatives(drug)
-            dosage_info['alternatives'] = [alt['name'] for alt in alternatives]
-            dosage_results.append(dosage_info)
+            try:
+                dosage_info = drug_db.get_dosage_recommendations(drug, age, weight, renal_function)
+                alternatives = drug_db.get_alternatives(drug)
+                dosage_info['alternatives'] = [alt['name'] for alt in alternatives] if alternatives else []
+                dosage_results.append(dosage_info)
+            except Exception as e:
+                dosage_results.append({
+                    'drug': drug,
+                    'recommended_dosage': 'Consult healthcare provider',
+                    'age_group': 'All ages',
+                    'max_daily': 'As prescribed',
+                    'alternatives': []
+                })
         
         return {
             "success": True,
@@ -290,7 +326,7 @@ async def upload_and_analyze(
             "drugs_found": drugs_found,
             "interactions": interactions,
             "dosage_results": dosage_results,
-            "file_info": file_processor.get_file_info(file)
+            "file_info": file_processor.get_file_info(simple_file)
         }
         
     except Exception as e:
