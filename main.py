@@ -414,3 +414,10 @@ async def get_supported_languages():
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))  # Railway gives you PORT
+    app.run(host="0.0.0.0", port=port)
+
