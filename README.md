@@ -236,21 +236,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Medical Disclaimer**: This application is for educational and demonstration purposes only. It should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical decisions.
 
-## 🆘 Support
-
-For issues and questions:
-1. Check the API documentation at `http://localhost:8000/docs`
-2. Review the console logs for error messages
-3. Ensure all dependencies are properly installed
-4. Verify API keys are correctly configured
-
-## 🎉 Hackathon Ready
-
-This application is designed to be:
-- **Production-ready** with comprehensive error handling
-- **Scalable** with modular architecture
-- **User-friendly** with intuitive interface
-- **Feature-rich** with advanced AI capabilities
-- **Well-documented** for easy understanding and extension
-
-Perfect for hackathons, demos, and real-world medical AI applications!
